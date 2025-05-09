@@ -38,9 +38,10 @@ namespace InventoryApp.API.Controllers
 
             var claims = new[]
             {
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, "Admin")
-        };
+                new Claim("UserId", "1"),
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Role, "Admin")
+            };
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
