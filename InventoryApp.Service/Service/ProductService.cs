@@ -39,6 +39,7 @@ namespace InventoryApp.Service.Service
         public async Task<bool> Update(int id, ProductDto productDto)
         {
             var product = _mapper.Map<Product>(productDto);
+            product.Id = id;
             await _unitOfWork.Products.Update(id, product);
             return await CompletedAsync() > 0;
         }

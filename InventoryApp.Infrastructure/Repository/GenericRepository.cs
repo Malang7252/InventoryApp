@@ -68,14 +68,25 @@ namespace InventoryApp.Infrastructure.Repository
 
         public async Task<bool> Update(int id, T entity)
         {
-            var t = await dbSet.FindAsync(id);
-            if (t != null)
+            //dbSet.Update(entity);
+            //return true;
+            var existing = await dbSet.FindAsync(id);
+
+            if (existing == null)
+                throw new KeyNotFoundException($"Entity with id {id} not found.");
+
+            _context.Entry(existing).CurrentValues.SetValues(entity);
+
+            try
             {
-                dbSet.Update(entity);
+                await _context.SaveChangesAsync();
                 return true;
             }
-            else
-                return false;
+            catch (DbUpdateConcurrencyException ex)
+            {
+                // Optional: log and rethrow or return false
+                throw new Exception("Concurrency conflict occurred while updating.", ex);
+            }
         }
     }
 }

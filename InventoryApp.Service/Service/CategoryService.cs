@@ -32,14 +32,15 @@ namespace InventoryApp.Service.Service
         }
         public async Task<bool> AddAsync(CategoryDto categoryDto)
         {
-            var product = _mapper.Map<Category>(categoryDto);
-            await _unitOfWork.Categories.Add(product);
+            var category = _mapper.Map<Category>(categoryDto);
+            await _unitOfWork.Categories.Add(category);
             return await CompletedAsync() > 0;
         }
         public async Task<bool> Update(int id, CategoryDto categoryDto)
         {
-            var product = _mapper.Map<Category>(categoryDto);
-            await _unitOfWork.Categories.Update(id, product);
+            var category = _mapper.Map<Category>(categoryDto);
+            category.Id = id;
+            await _unitOfWork.Categories.Update(id, category);
             return await CompletedAsync() > 0;
         }
         public async Task<bool> Delete(int id)
