@@ -1,23 +1,30 @@
-using AutoMapper;
+﻿using AutoMapper;
+using FluentValidation;
 using InventoryApp.API.Extensions;
 using InventoryApp.API.Middleware;
 using InventoryApp.Infrastructure.Data;
 using InventoryApp.Service.AutoMapperProfile;
+using InventoryApp.Service.Validators;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo
+    .Console()
+    .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
+
 try
 {
     Log.Information("starting server.");
+
     var builder = WebApplication.CreateBuilder(args);
 
     //Add support to logging with SERILOG
     builder.Host.UseSerilog((context, loggerConfiguration) =>
     {
         loggerConfiguration.WriteTo.Console();
+        loggerConfiguration.WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day);
         loggerConfiguration.ReadFrom.Configuration(context.Configuration);
     });
 
@@ -25,9 +32,6 @@ try
 
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(connectionString));
-
-    //builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
-    //builder.Services.AddTransient(typeof(ProductService), typeof(ProductService));
 
     builder.Services.AddServices();
 
@@ -40,16 +44,20 @@ try
 
     builder.Services.AddSingleton(mapper);
 
-    builder.Services.AddValidator();
+    //builder.Services.AddValidator();
+    builder.Services.AddValidatorsFromAssemblyContaining<CategoryDtoValidator>();
+
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+
+    builder.Services.AddSwaggerGen();
 
     // Add services to the container.
     builder.Services.AddControllers();
 
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-
     var app = builder.Build();
+
+    app.UseMiddleware<ExceptionMiddleware>();
 
     //Add support to logging request with SERILOG
     app.UseSerilogRequestLogging();
@@ -61,9 +69,9 @@ try
         app.UseSwaggerUI();
     }
 
-    app.UseMiddleware<ExceptionMiddleware>();
-
     app.UseHttpsRedirection();
+
+    app.UseAuthentication();
 
     app.UseAuthorization();
 

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using FluentValidation;
+using InventoryApp.API.Extensions;
 using InventoryApp.Service.DTO;
 using InventoryApp.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace InventoryApp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _service;
@@ -23,38 +24,22 @@ namespace InventoryApp.API.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll([FromQuery] int? categoryId)
         {
-            if (GetUserIdFromToken() != 1)
-            {
-                return Unauthorized("You are not authorized to delete this product");
-            }
             return Ok(await _service.GetAll(categoryId));
         }
         [HttpGet("GetById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            if (GetUserIdFromToken() != 1)
-            {
-                return Unauthorized("You are not authorized to delete this product");
-            }
             return Ok(await _service.GetById(id));
         }
         [HttpPost("Create")]
         public async Task<IActionResult> Create([FromBody] ProductDto dto)
         {
-            if (GetUserIdFromToken() != 1)
-            {
-                return Unauthorized("You are not authorized to delete this product");
-            }
             var validationResult = await _validator.ValidateAsync(dto);
 
             if (!validationResult.IsValid)
             {
-                var errorResponse = validationResult.Errors.Select(e => new
-                {
-                    Field = e.PropertyName,
-                    Error = e.ErrorMessage
-                });
-                return BadRequest(new { Errors = errorResponse });
+                validationResult.AddToModelState(ModelState);
+                return UnprocessableEntity(ModelState);
             }
 
             await _service.AddAsync(dto);
@@ -63,20 +48,12 @@ namespace InventoryApp.API.Controllers
         [HttpPut("Update")]
         public async Task<IActionResult> Update([FromQuery] int id, [FromBody] ProductDto dto)
         {
-            if (GetUserIdFromToken() != 1)
-            {
-                return Unauthorized("You are not authorized to delete this product");
-            }
             var validationResult = await _validator.ValidateAsync(dto);
 
             if (!validationResult.IsValid)
             {
-                var errorResponse = validationResult.Errors.Select(e => new
-                {
-                    Field = e.PropertyName,
-                    Error = e.ErrorMessage
-                });
-                return BadRequest(new { Errors = errorResponse });
+                validationResult.AddToModelState(ModelState);
+                return UnprocessableEntity(ModelState);
             }
             await _service.Update(id, dto);
             return Ok("Product updated successfully");
@@ -84,14 +61,9 @@ namespace InventoryApp.API.Controllers
         [HttpPut("Delete")]
         public async Task<IActionResult> Delete([FromQuery] int id)
         {
-            if (GetUserIdFromToken() != 1)
-            {
-                return Unauthorized("You are not authorized to delete this product");
-            }
             await _service.Delete(id);
             return Ok("Product deleted successfully");
         }
-
         protected long GetUserIdFromToken()
         {
             long UserId = 0;

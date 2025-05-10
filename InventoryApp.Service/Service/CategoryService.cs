@@ -19,7 +19,7 @@ namespace InventoryApp.Service.Service
         {
             if (id.HasValue)
             {
-                var filteredCategories = await _unitOfWork.Categories.GetAll(p => p.Id == id); // filtered
+                var filteredCategories = await _unitOfWork.Categories.GetAll(p => p.Id == id);
                 return _mapper.Map<IEnumerable<CategoryDto>>(filteredCategories);
             }
             var categories = await _unitOfWork.Categories.GetAll(id);
@@ -52,19 +52,5 @@ namespace InventoryApp.Service.Service
         {
             return await _unitOfWork.CompletedAsync();
         }
-        //public async Task<IEnumerable<CategoryDto>> GetCategoryAsync(int? id)
-        //{
-        //    var category = await _unitOfWork.Categories.GetAll(id);
-        //    return _mapper.Map<IEnumerable<CategoryDto>>(category);
-        //}
-        //public async Task<bool> InsertAsync(CategoryDto categoryDto)
-        //{
-        //    var category = _mapper.Map<Category>(categoryDto);
-        //    return await _unitOfWork.Categories.Add(category);
-        //}
-        //public async Task<int> CompletedAsync()
-        //{
-        //    return await _unitOfWork.CompletedAsync();
-        //}
     }
 }
